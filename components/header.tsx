@@ -24,7 +24,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { checkUser } from "@/lib/checkUser";
-// import { ModeToggle } from "./ModeToggle";
 
 const Header = async () => {
   await checkUser();
@@ -86,14 +85,13 @@ const Header = async () => {
           </SignedIn>
 
           <SignedOut>
-            {/* <ModeToggle /> */}
             <SignInButton>
               <Button variant="outline">Sign In</Button>
             </SignInButton>
             <SignUpButton></SignUpButton>
           </SignedOut>
+
           <SignedIn>
-            {/* <ModeToggle /> */}
             <UserButton
               appearance={{
                 elements: {
