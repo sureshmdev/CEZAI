@@ -31,7 +31,7 @@ const Header = () => {
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/">
           <Image
-            src="/CEZAI-logo-neutral.png"
+            src="/cezai-logo-light.png"
             alt="CEAZAI Logo"
             width={200}
             height={60}
