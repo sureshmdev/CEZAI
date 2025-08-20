@@ -6,6 +6,7 @@ import Header from "@/components/header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { Toaster } from "@/components/ui/sonner";
+import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
 

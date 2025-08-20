@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { checkUser } from "@/lib/checkUser";
 
-const Header = async () => {
+export default async function Header() {
   await checkUser();
 
   return (
@@ -88,7 +88,9 @@ const Header = async () => {
             <SignInButton>
               <Button variant="outline">Sign In</Button>
             </SignInButton>
-            <SignUpButton></SignUpButton>
+            <SignUpButton>
+              <Button>Sign Up</Button>
+            </SignUpButton>
           </SignedOut>
 
           <SignedIn>
@@ -107,6 +109,4 @@ const Header = async () => {
       </nav>
     </header>
   );
-};
-
-export default Header;
+}
