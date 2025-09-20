@@ -33,7 +33,33 @@ model User {
   assessments   Assessment[]
   resume        Resume?
   coverLetter   CoverLetter[]
+  userInsight   UserInsight?
+
+  interviews    Interview[]
+  feedbacks     Feedback[]
 }
+
+model UserInsight {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id])
+  industry        String
+
+  // Tailored insights
+  salaryRanges    Json[]    // Array of { role: string, min: float, max: float, median: float, location: string? }
+  growthRate      Float
+  demandLevel     String    // "High", "Medium", "Low"
+  topSkills       String[]
+  marketOutlook   String    // "Positive", "Neutral", "Negative"
+  keyTrends       String[]
+  recommendedSkills String[]
+
+  lastUpdated     DateTime  @default(now())
+  nextUpdate      DateTime  // Scheduled update time
+
+  @@index([userId])
+}
+
 
 model Assessment {
   id            String    @id @default(cuid())
@@ -102,4 +128,40 @@ model IndustryInsight {
   nextUpdate    DateTime  // Scheduled update time
 
   @@index([industry])
+}
+
+model Interview {
+  id         String     @id @default(cuid())
+  userId     String
+  user       User       @relation(fields: [userId], references: [id])
+
+  role       String
+  level      String
+  type       String
+  techstack  String[]   // e.g. ["React", "Node.js"]
+  questions  String[]   // e.g. ["What is closure?"]
+  finalized  Boolean    @default(false)
+
+  coverImage String?
+
+  feedbacks  Feedback[]
+  createdAt  DateTime   @default(now())
+
+  @@index([userId])
+}
+
+model Feedback {
+  id                  String    @id @default(cuid())
+  interviewId         String
+  interview           Interview @relation(fields: [interviewId], references: [id])
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalScore          Float
+  categoryScores      Json      // Array<{ name: string; score: number; comment: string }>
+  strengths           String[]
+  areasForImprovement String[]
+  finalAssessment     String
+  transcript          Json      // Array<{ role: string; content: string }>
+
+  createdAt           DateTime  @default(now())
 }
