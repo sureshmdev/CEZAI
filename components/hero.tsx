@@ -1,5 +1,4 @@
 "use client";
-import Heroimage from './../public/Hero-image-dark.png'
 import Link from "next/link";
 import React, { useEffect, useRef } from "react";
 import { Button } from "./ui/button";
@@ -59,7 +58,7 @@ const HeroSection: React.FC = () => {
         <div className="hero-image-wrapper mt-5 md:mt-0">
           <div ref={imageRef} className="hero-image">
             <Image
-              src={Heroimage}
+              src="/Hero-image-dark.png"
               width={1280}
               height={720}
               alt="Hero Image"
