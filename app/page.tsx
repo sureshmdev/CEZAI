@@ -1,5 +1,7 @@
-import React from "react";
+"use client";
+
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
@@ -10,21 +12,26 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import Image from "next/image";
 import { features } from "@/data/features";
-import { testimonial } from "@/data/testimonial";
+import { testimonial as testimonialsData } from "@/data/testimonial";
 import { faqs } from "@/data/faqs";
 import { howItWorks } from "@/data/howItWorks";
+import { useUser } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
 export default function LandingPage() {
+  const { isSignedIn } = useUser();
+  // const router = useRouter();
+  if (isSignedIn) {
+    // router.
+    redirect("/onboarding");
+  }
   return (
     <>
       <div className="grid-background"></div>
 
-      {/* Hero Section */}
       <HeroSection />
 
-      {/* Features Section */}
       <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
         <div className="container mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-bold tracking-tighter text-center mb-12">
@@ -51,7 +58,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
       <section className="w-full py-12 md:py-24 bg-muted/50">
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto text-center">
@@ -75,7 +81,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works Section */}
       <section className="w-full py-12 md:py-24 bg-background">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -108,7 +113,7 @@ export default function LandingPage() {
             What Our Users Say
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {testimonial.map((testimonial, index) => (
+            {testimonialsData.map((testimonial, index) => (
               <Card key={index} className="bg-background">
                 <CardContent className="pt-6">
                   <div className="flex flex-col space-y-4">
@@ -151,7 +156,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FAQ Section */}
       <section className="w-full py-12 md:py-24">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -178,7 +182,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="w-full">
         <div className="mx-auto py-24 gradient rounded-lg">
           <div className="flex flex-col items-center justify-center space-y-4 text-center max-w-3xl mx-auto">

@@ -2,43 +2,58 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import Header from "@/components/header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { Toaster } from "@/components/ui/sonner";
-import Link from "next/link";
+import type { ReactNode } from "react";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "CEZAI",
-  description: "AI Powered Student Skill Assessment & Career Guidance Platform",
+  description: "Personalized Career and Skills Advisor",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: ReactNode }>) {
   return (
     <ClerkProvider appearance={{ baseTheme: dark }}>
       <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.className}`}>
+        <body className={inter.className}>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
           >
-            {/* header */}
-            <Header />
-            <main className="min-h-screen">{children}</main>
+            {/* Root wrapper with header height variable */}
+            <div className="[--header-height:calc(4rem)] h-screen">
+              <SidebarProvider className="flex flex-col h-full">
+                {/* Header */}
+                <SiteHeader />
+
+                {/* Sidebar + Main Content */}
+                <div className="flex flex-1 overflow-hidden">
+                  {/* Sidebar */}
+                  <AppSidebar />
+
+                  {/* Main content */}
+                  <SidebarInset className="flex-1 overflow-auto p-4">
+                    {children}
+                  </SidebarInset>
+                </div>
+              </SidebarProvider>
+            </div>
+
             <Toaster richColors />
 
-            {/* footer */}
+            {/* Footer */}
             <footer className="bg-muted/50 py-6">
               <div className="container mx-auto px-4 text-center text-gray-200 space-y-2">
-                {/* <p>Made with 🩷 by team CEZAI</p> */}
                 <p className="text-sm">
                   &copy; {new Date().getFullYear()} CEZAI. All rights reserved.
                 </p>

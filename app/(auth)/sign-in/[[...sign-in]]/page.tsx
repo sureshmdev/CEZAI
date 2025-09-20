@@ -1,5 +1,8 @@
 import { SignIn } from "@clerk/nextjs";
+import type { NextPage } from "next";
 
-export default function Page() {
-  return <SignIn forceRedirectUrl="/onboarding" />;
-}
+const Page: NextPage = () => {
+  return <SignIn />;
+};
+
+export default Page;
