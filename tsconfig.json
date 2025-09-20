@@ -19,8 +19,11 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".", // Base URL
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@types": ["types/index"],
+      "@types/*": ["types/*"] // Modular types
     }
   },
   "include": [

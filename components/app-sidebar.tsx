@@ -34,22 +34,22 @@ const navMainItems = [
   },
   {
     title: "Resume",
-    url: "/resume-builder",
+    url: "/resume",
     icon: BookOpen,
   },
   {
     title: "Cover Letter",
-    url: "/cover-letter",
+    url: "/ai-cover-letter",
     icon: Frame,
   },
   {
     title: "Smart Assessment",
-    url: "/smart-assessment",
+    url: "/interview",
     icon: FileQuestionMark,
   },
   {
     title: "Interview Prep",
-    url: "/interview-prep",
+    url: "/comming-soon",
     icon: Bot,
   },
 ];
@@ -57,12 +57,12 @@ const navMainItems = [
 const navSecondaryItems = [
   {
     title: "Support",
-    url: "#",
+    url: "/comming-soon",
     icon: LifeBuoy,
   },
   {
     title: "Feedback",
-    url: "#",
+    url: "/comming-soon",
     icon: Send,
   },
 ];

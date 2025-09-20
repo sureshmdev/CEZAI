@@ -60,7 +60,7 @@ const HeroSection: React.FC = () => {
           <div ref={imageRef} className="hero-image">
             <Image
               src="/hero-image-dark.png"
-              width={1100} //1280
+              width={1280}
               height={720}
               alt="Hero Image"
               className="rounded-lg shadow-2xl border mx-auto"

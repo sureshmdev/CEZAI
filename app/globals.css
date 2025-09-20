@@ -76,6 +76,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --grid-line: oklch(0 0 0 / 0.05); /* light mode grid */
+  --grid-overlay: oklch(100% 0 0 / 0.5); /* light mode fade */
 }
 
 .dark {
@@ -110,6 +112,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --grid-line: oklch(100% 0 0 / 0.1); /* dark mode grid */
+  --grid-overlay: oklch(0 0 0 / 0.9);
 }
 
 @layer base {
@@ -172,12 +176,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-      to right,
-      rgba(255, 255, 255, 0.1) 1px,
-      transparent 1px
-    ),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background: linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 50px 50px;
   pointer-events: none;
   z-index: -1;
@@ -190,5 +190,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, transparent, rgba(0, 0, 0, 0.9));
+  background: radial-gradient(circle, transparent, var(--grid-overlay));
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden; /* Prevent double scrollbars */
 }
