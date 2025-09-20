@@ -5,8 +5,8 @@ import React, { useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import Image from "next/image";
 
-const HeroSection = () => {
-  const imageRef = useRef(null);
+const HeroSection: React.FC = () => {
+  const imageRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const imageElement = imageRef.current;
@@ -15,10 +15,12 @@ const HeroSection = () => {
       const scrollPosition = window.scrollY;
       const scrollThreshold = 100;
 
-      if (scrollPosition > scrollThreshold) {
-        imageElement.classList.add("scrolled");
-      } else {
-        imageElement.classList.remove("scrolled");
+      if (imageElement) {
+        if (scrollPosition > scrollThreshold) {
+          imageElement.classList.add("scrolled");
+        } else {
+          imageElement.classList.remove("scrolled");
+        }
       }
     };
 
@@ -57,11 +59,11 @@ const HeroSection = () => {
         <div className="hero-image-wrapper mt-5 md:mt-0">
           <div ref={imageRef} className="hero-image">
             <Image
-              src={"/hero-image-dark.png"}
-              width={1280}
+              src="/hero-image-dark.png"
+              width={1100} //1280
               height={720}
               alt="Hero Image"
-              className="rounded-lg shadow-2x1 border mx-auto"
+              className="rounded-lg shadow-2xl border mx-auto"
               priority
             />
           </div>

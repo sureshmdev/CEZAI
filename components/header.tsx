@@ -1,4 +1,3 @@
-import React from "react";
 import {
   SignInButton,
   SignUpButton,
@@ -34,14 +33,14 @@ export default async function Header() {
         <Link href="/">
           <Image
             src="/cezai-logo-light.png"
-            alt="CEAZAI Logo"
+            alt="CEZAI Logo"
             width={200}
             height={60}
             className="h-12 py-1 w-auto object-contain"
           />
         </Link>
 
-        <div className="flex items-center space-x-2 md:spacex4">
+        <div className="flex items-center space-x-2 md:space-x-4">
           <SignedIn>
             <Link href={"/dashboard"}>
               <Button variant="outline">
