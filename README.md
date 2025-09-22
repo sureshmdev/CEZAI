@@ -1,5 +1,3 @@
----
-
 # 🤖 CEZAI
 
 **AI-Powered Career & Skills Advisor for Students and Professionals**
@@ -10,33 +8,32 @@
 
 ## 🚀 Features
 
-* 🎯 **Personalized Career Guidance** – AI learns from each student’s profile and suggests realistic career paths.
-* 🛠️ **Career Roadmap Generator** – Creates step-by-step upskilling plans aligned with fast-changing industries.
-* 🧠 **Skill Gap Analysis** – Identifies missing skills and recommends targeted resources.
-* 📝 **AI Resume & Cover Letter Builder** – Optimized for ATS and recruiters.
-* 🎤 **Voice-Based Mock Interviews** – Real practice with AI-driven feedback.
-* 📊 **Dashboard with Industry Insights** – Stay updated with live market trends.
-* 🧩 **AI Quiz & Assessment Generator** – Build confidence with interactive practice tests.
+- 🎯 **Personalized Career Guidance** – AI learns from each student’s profile and suggests realistic career paths.
+- 🛠️ **Career Roadmap Generator** – Creates step-by-step upskilling plans aligned with fast-changing industries.
+- 🧠 **Skill Gap Analysis** – Identifies missing skills and recommends targeted resources.
+- 📝 **AI Resume & Cover Letter Builder** – Optimized for ATS and recruiters.
+- 🎤 **Voice-Based Mock Interviews** – Real practice with AI-driven feedback.
+- 📊 **Dashboard with Industry Insights** – Stay updated with live market trends.
+- 🧩 **AI Quiz & Assessment Generator** – Build confidence with interactive practice tests.
 
 ---
 
 ## ✨ Unique Value Proposition (USP)
 
-* 🌏 **Made for India** – Designed for AI, tech, fintech, EV, and 50+ fast-changing careers.
-* 🎤 **Voice-first practice** – AI mock interviews simulate real-life experiences.
-* 📈 **Always evolving** – Powered by industry data and continuous AI model improvements.
-* 🔄 **End-to-end journey** – Unlike others, CEZAI covers career insights → roadmaps → skills → interviews → job readiness.
+- 🌏 **Made for India** – Designed for AI, tech, fintech, EV, and 50+ fast-changing careers.
+- 🎤 **Voice-first practice** – AI mock interviews simulate real-life experiences.
+- 📈 **Always evolving** – Powered by industry data and continuous AI model improvements.
+- 🔄 **End-to-end journey** – Unlike others, CEZAI covers career insights → roadmaps → skills → interviews → job readiness.
 
 ---
 
-## 🏗️ Architecture Overview  
+## 🏗️ Architecture Overview
 
-- **Frontend**: Onboarding Profile → Dashboard → Career Roadmap → Resume/Cover Letter Generator → Quiz/Interview Prep  
-- **Backend**: Next.js + Node.js APIs  
-- **Database**: Neon PostgreSQL (via Prisma)  
-- **AI**: Google Gemini AI (via AI Studio)  
-- **Workflow Orchestration**: Inngest, Vapi  
-
+- **Frontend**: Onboarding Profile → Dashboard → Career Roadmap → Resume/Cover Letter Generator → Quiz/Interview Prep
+- **Backend**: Next.js + Node.js APIs
+- **Database**: Neon PostgreSQL (via Prisma)
+- **AI**: Google Gemini AI (via AI Studio)
+- **Workflow Orchestration**: Inngest, Vapi
 
 ---
 
@@ -44,28 +41,28 @@
 
 **Frontend**
 
-* React, Next.js, TailwindCSS
+- React, Next.js, TailwindCSS
 
 **Backend**
 
-* Next.js API Routes
-* Node.js, TypeScript
-* Clerk (Authentication)
+- Next.js API Routes
+- Node.js, TypeScript
+- Clerk (Authentication)
 
 **Database**
 
-* Neon PostgreSQL
-* Prisma ORM
+- Neon PostgreSQL
+- Prisma ORM
 
 **AI / Workflow**
 
-* Google Gemini (via Google AI Studio)
-* Vapi, Inngest
+- Google Gemini (via Google AI Studio)
+- Vapi, Inngest
 
 **Hosting & Infra**
 
-* Vercel (frontend & backend)
-* Neon (serverless database)
+- Vercel (frontend & backend)
+- Neon (serverless database)
 
 ---
 
@@ -73,10 +70,10 @@
 
 ### Prerequisites
 
-* Node.js >= 18
-* npm >= 9
-* PostgreSQL (Neon recommended)
-* API Keys: Google Gemini, Clerk, etc.
+- Node.js >= 18
+- npm >= 9
+- PostgreSQL (Neon recommended)
+- API Keys: Google Gemini, Clerk, etc.
 
 ### Setup
 
@@ -102,19 +99,18 @@ npm run dev
 
 Runs at: `http://localhost:3000`
 
-
 ---
 
 ## 📊 Roadmap
 
-* [x] AI Resume & Cover Letter Builder
-* [x] Career Roadmap Generator
-* [x] Industry Insights Dashboard
-* [x] AI Quiz Generator
-* [ ] Voice-based Mock Interviews (Beta)
-* [ ] Mobile App (React Native)
-* [ ] Multi-language support
-* [ ] Advanced analytics dashboard for institutions
+- [x] AI Resume & Cover Letter Builder
+- [x] Career Roadmap Generator
+- [x] Industry Insights Dashboard
+- [x] AI Quiz Generator
+- [ ] Voice-based Mock Interviews (Beta)
+- [ ] Mobile App (React Native)
+- [ ] Multi-language support
+- [ ] Advanced analytics dashboard for institutions
 
 ---
 
@@ -133,9 +129,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) (coming soon).
 
 ## 🌍 Community & Support
 
-* 📚 Documentation: *(Coming Soon)*
-* 💬 Discussions: *(Future Discord/Slack link)*
-* 🐛 Issues: [GitHub Issues](https://github.com/sureshmdev/CEZAI/issues)
+- 📚 Documentation: _(Coming Soon)_
+- 💬 Discussions: _(Future Discord/Slack link)_
+- 🐛 Issues: [GitHub Issues](https://github.com/sureshmdev/CEZAI/issues)
 
 ---
 
