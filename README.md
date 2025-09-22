@@ -98,30 +98,6 @@ AI-powered foresight into industry shifts and skill demands. Stay ahead of the c
 
 ---
 
-## 🔄 Your Journey from Stuck to Success
-
-<div align="center">
-  <img src="https://img.shields.io/badge/Problem%20to%20Solution-🔄%20Journey-yellow?style=for-the-badge&logo=road&logoColor=black" alt="Journey Badge" />
-</div>
-
-```mermaid
-graph TD
-    A[❌ Career Challenges<br/>Resume rejections, interview fails,<br/>skills gaps, uncertainty] --> B[😰 Frustration<br/>"Why can't I catch a break?"]
-    B --> C[🔍 Discovery<br/>"What if there's a better way?"]
-    C --> D[🎯 Assessment<br/>Tell us about your industry & goals]
-    D --> E[📊 Strategy<br/>AI creates your personalized roadmap]
-    E --> F[📄 Documents<br/>Perfect resume & cover letters]
-    F --> G[🎤 Practice<br/>Mock interviews with real feedback]
-    G --> H[📈 Analytics<br/>Track your growth & improvements]
-    H --> I[🚀 Success<br/>Land your dream role!]
-    I --> J[🎉 Growth<br/>Continue your career journey]
-
-    style A fill:#ff6b6b,stroke:#333,stroke-width:2px
-    style B fill:#ffa500,stroke:#333,stroke-width:2px
-    style I fill:#51cf66,stroke:#333,stroke-width:2px
-    style J fill:#51cf66,stroke:#333,stroke-width:2px
-```
-
 ---
 
 ## 🔄 How We Work Together
