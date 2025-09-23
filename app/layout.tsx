@@ -23,6 +23,9 @@ export default function RootLayout({
   return (
     <ClerkProvider appearance={{ baseTheme: dark }}>
       <html lang="en" suppressHydrationWarning>
+        {/* <head>
+          <link rel="icon" href="/cezai-logo-light.png" sizes="any" />
+        </head> */}
         <body className={inter.className}>
           <ThemeProvider
             attribute="class"
@@ -31,19 +34,19 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {/* Root wrapper with header height variable */}
-            <div className="[--header-height:calc(4rem)] h-screen">
-              <SidebarProvider className="flex flex-col h-full">
+            <div className="[--header-height:calc(--spacing(14))]">
+              <SidebarProvider className="flex flex-col">
                 {/* Header */}
                 <SiteHeader />
 
                 {/* Sidebar + Main Content */}
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-1">
                   {/* Sidebar */}
                   <AppSidebar />
 
                   {/* Main content */}
-                  <SidebarInset className="flex-1 overflow-auto p-4">
-                    {children}
+                  <SidebarInset>
+                    <main className="min-h-screen">{children}</main>
                   </SidebarInset>
                 </div>
               </SidebarProvider>

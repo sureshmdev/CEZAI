@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import React, { useEffect, useRef } from "react";
 import { Button } from "./ui/button";
@@ -48,7 +49,11 @@ const HeroSection: React.FC = () => {
               Get Started
             </Button>
           </Link>
-          <Link href={"/dashboard"}>
+          <Link
+            href={"https://youtu.be/eex3en074Ds"}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Button size="lg" className="px-8" variant="outline">
               Demo Video
             </Button>
@@ -58,8 +63,8 @@ const HeroSection: React.FC = () => {
         <div className="hero-image-wrapper mt-5 md:mt-0">
           <div ref={imageRef} className="hero-image">
             <Image
-              src="/Hero-image-dark.png"
-              width={1280}
+              src="/hero-image-dark.png"
+              width={1100} //1280
               height={720}
               alt="Hero Image"
               className="rounded-lg shadow-2xl border mx-auto"
