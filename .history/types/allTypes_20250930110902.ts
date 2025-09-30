@@ -1,0 +1,213 @@
+// types/assessment.ts
+
+export interface QuizQuestionInput {
+  question: string;
+  options: string[]; // Always 4 options
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface QuizResultInput {
+  question: string;
+  answer: string; // The correct answer
+  userAnswer: string; // What the user picked
+  isCorrect: boolean;
+  explanation: string;
+}
+
+export interface QuizResponse {
+  questions: QuizQuestionInput[];
+}
+
+export interface SaveQuizInput {
+  questions: QuizQuestionInput[];
+  answers: string[];
+  score: number;
+}
+
+// Assessment Model Mirror (Prisma replacement for UI)
+export interface Assessment {
+  id: string;
+  userId: string;
+  quizScore: number;
+  questions: QuizResultInput[]; // JSON field
+  category: string; // e.g. "Technical"
+  improvementTip?: string | null;
+  createdAt: string; // ISO date
+  updatedAt: string; // ISO date
+}
+
+// common.ts -> Shared / Nested reusable types
+
+export interface SalaryRange {
+  role: string;
+  min: number;
+  max: number;
+  median: number;
+  location?: string;
+}
+
+export interface AssessmentQuestion {
+  question: string;
+  answer: string;
+  userAnswer: string;
+  isCorrect: boolean;
+}
+
+export type DemandLevel = "High" | "Medium" | "Low";
+export type MarketOutlook = "Positive" | "Neutral" | "Negative";
+
+// coverLetter.ts
+export interface CoverLetter {
+  id: string;
+  userId: string;
+  content: string;
+  jobDescription: string | null;
+  companyName: string;
+  jobTitle: string;
+  status: "draft" | "completed";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GenerateCoverLetterInput {
+  jobTitle: string;
+  companyName: string;
+  jobDescription?: string;
+}
+
+export interface UpdateCoverLetterInput {
+  id: string;
+  content: string;
+}
+
+export type CoverLetterRecord = CoverLetter;
+
+// index.ts
+export * from "./common";
+export * from "./user";
+export * from "./userInsight";
+export * from "./assessment";
+export * from "./resume";
+export * from "./coverLetter";
+export * from "./industryInsight";
+export * from "./interviewPrep";
+export * from "./onboarding";
+
+// industryInsights.ts
+import { DemandLevel, MarketOutlook, SalaryRange } from "./common";
+import { User } from "./user";
+
+export interface IndustryInsight {
+  id: string;
+  industry: string;
+
+  salaryRanges: SalaryRange[];
+  growthRate: number;
+  demandLevel: DemandLevel;
+  topSkills: string[];
+  marketOutlook: MarketOutlook;
+  keyTrends: string[];
+  recommendedSkills: string[];
+
+  lastUpdated: Date;
+  nextUpdate: Date;
+
+  users: User[];
+}
+
+// interviewPrep.ts
+export interface Feedback {
+  id: string;
+  interviewId: string;
+  totalScore: number;
+  categoryScores: Array<{
+    name: string;
+    score: number;
+    comment: string;
+  }>;
+  strengths: string[];
+  areasForImprovement: string[];
+  finalAssessment: string;
+  createdAt: string;
+}
+
+export interface Interview {
+  id: string;
+  role: string;
+  level: string;
+  questions: string[];
+  techstack: string[];
+  createdAt: string;
+  userId: string;
+  type: string;
+  finalized: boolean;
+}
+
+export interface CreateFeedbackParams {
+  interviewId: string;
+  userId: string;
+  transcript: { role: string; content: string }[];
+  feedbackId?: string;
+}
+
+export interface InterviewCardProps {
+  interviewId?: string;
+  userId?: string;
+  role: string;
+  type: string;
+  techstack: string[];
+  createdAt?: string;
+}
+
+export interface AgentProps {
+  userName: string;
+  userId?: string;
+  interviewId?: string;
+  feedbackId?: string;
+  type: "generate" | "interview";
+  questions?: string[];
+}
+
+export interface RouteParams {
+  params: Promise<Record<string, string>>;
+  searchParams: Promise<Record<string, string>>;
+}
+
+export interface GetFeedbackByInterviewIdParams {
+  interviewId: string;
+  userId: string;
+}
+
+export interface GetLatestInterviewsParams {
+  userId: string;
+  limit?: number;
+}
+
+export interface SignInParams {
+  email: string;
+  idToken: string;
+}
+
+export interface SignUpParams {
+  uid: string;
+  name: string;
+  email: string;
+  password: string;
+}
+
+type FormType = "sign-in" | "sign-up";
+
+export interface InterviewFormProps {
+  interviewId: string;
+  role: string;
+  level: string;
+  type: string;
+  techstack: string[];
+  amount: number;
+}
+
+export interface TechIconProps {
+  techStack: string[];
+}
+
