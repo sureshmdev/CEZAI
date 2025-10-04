@@ -1,4 +1,4 @@
-import Agent from "../interview/_components/Agent";
+import Agent from "./_components/Agent";
 import { auth } from "@clerk/nextjs/server";
 
 const Page = async () => {
