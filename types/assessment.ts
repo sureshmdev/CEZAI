@@ -1,6 +1,7 @@
 // types/assessment.ts
 
-// === Quiz ===
+import type { JsonValue } from "@prisma/client/runtime/library";
+
 export interface QuizQuestionInput {
   question: string;
   options: string[]; // Always 4 options
@@ -26,7 +27,7 @@ export interface SaveQuizInput {
   score: number;
 }
 
-// === Assessment Model Mirror (Prisma replacement for UI) ===
+// Assessment Model Mirror (Prisma replacement for UI)
 export interface Assessment {
   id: string;
   userId: string;
@@ -36,4 +37,15 @@ export interface Assessment {
   improvementTip?: string | null;
   createdAt: string; // ISO date
   updatedAt: string; // ISO date
+}
+
+export interface RawAssessment {
+  id: string;
+  userId: string;
+  quizScore: number;
+  questions: JsonValue[]; // raw JSON array
+  category: string;
+  improvementTip: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }

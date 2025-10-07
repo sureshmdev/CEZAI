@@ -24,7 +24,7 @@ export default function LandingPage() {
   // const router = useRouter();
   if (isSignedIn) {
     // router.
-    redirect("/onboarding");
+    redirect("/dashboard");
   }
   return (
     <>

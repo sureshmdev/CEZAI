@@ -27,8 +27,28 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { SalaryRange } from "@/types";
 
-const DashboardView = ({ insights }) => {
+type DemandLevel = "high" | "medium" | "low";
+type MarketOutlook = "positive" | "neutral" | "negative";
+
+interface Insights {
+  salaryRanges: SalaryRange[];
+  marketOutlook: MarketOutlook;
+  lastUpdated: string | Date;
+  nextUpdate: string | Date;
+  growthRate: number;
+  demandLevel: DemandLevel;
+  topSkills: string[];
+  keyTrends: string[];
+  recommendedSkills: string[];
+}
+
+interface DashboardViewProps {
+  insights: Insights;
+}
+
+const DashboardView = ({ insights }: DashboardViewProps) => {
   // Transform salary data for the chart
   const salaryData = insights.salaryRanges.map((range) => ({
     name: range.role,
@@ -37,7 +57,7 @@ const DashboardView = ({ insights }) => {
     median: range.median / 1000,
   }));
 
-  const getDemandLevelColor = (level) => {
+  const getDemandLevelColor = (level: DemandLevel): string => {
     switch (level.toLowerCase()) {
       case "high":
         return "bg-green-500";
@@ -50,7 +70,7 @@ const DashboardView = ({ insights }) => {
     }
   };
 
-  const getMarketOutlookInfo = (outlook) => {
+  const getMarketOutlookInfo = (outlook: MarketOutlook) => {
     switch (outlook.toLowerCase()) {
       case "positive":
         return { icon: TrendingUp, color: "text-green-500" };
@@ -63,8 +83,9 @@ const DashboardView = ({ insights }) => {
     }
   };
 
-  const OutlookIcon = getMarketOutlookInfo(insights.marketOutlook).icon;
-  const outlookColor = getMarketOutlookInfo(insights.marketOutlook).color;
+  const outlookInfo = getMarketOutlookInfo(insights.marketOutlook);
+  const OutlookIcon = outlookInfo.icon;
+  const outlookColor = outlookInfo.color;
 
   // Format dates using date-fns
   const lastUpdatedDate = format(new Date(insights.lastUpdated), "dd/MM/yyyy");
@@ -72,6 +93,11 @@ const DashboardView = ({ insights }) => {
     new Date(insights.nextUpdate),
     { addSuffix: true }
   );
+
+  function toTitleCase(str: string) {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
 
   return (
     <div className="space-y-6">
@@ -81,6 +107,7 @@ const DashboardView = ({ insights }) => {
 
       {/* Market Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Market Outlook */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -89,13 +116,16 @@ const DashboardView = ({ insights }) => {
             <OutlookIcon className={`h-4 w-4 ${outlookColor}`} />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{insights.marketOutlook}</div>
+            <div className="text-2xl font-bold">
+              {toTitleCase(insights.marketOutlook)}
+            </div>
             <p className="text-xs text-muted-foreground">
               Next update {nextUpdateDistance}
             </p>
           </CardContent>
         </Card>
 
+        {/* Industry Growth */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -111,13 +141,16 @@ const DashboardView = ({ insights }) => {
           </CardContent>
         </Card>
 
+        {/* Demand Level */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Demand Level</CardTitle>
             <BriefcaseIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{insights.demandLevel}</div>
+            <div className="text-2xl font-bold">
+              {toTitleCase(insights.demandLevel)}
+            </div>
             <div
               className={`h-2 w-full rounded-full mt-2 ${getDemandLevelColor(
                 insights.demandLevel
@@ -126,6 +159,7 @@ const DashboardView = ({ insights }) => {
           </CardContent>
         </Card>
 
+        {/* Top Skills */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Top Skills</CardTitle>
@@ -184,8 +218,9 @@ const DashboardView = ({ insights }) => {
         </CardContent>
       </Card>
 
-      {/* Industry Trends */}
+      {/* Industry Trends and Recommended Skills */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Key Trends */}
         <Card>
           <CardHeader>
             <CardTitle>Key Industry Trends</CardTitle>
@@ -205,6 +240,7 @@ const DashboardView = ({ insights }) => {
           </CardContent>
         </Card>
 
+        {/* Recommended Skills */}
         <Card>
           <CardHeader>
             <CardTitle>Recommended Skills</CardTitle>

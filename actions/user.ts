@@ -1,51 +1,31 @@
 "use server";
-
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { db } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { generateAIInsights } from "./dashboard";
-import { db } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-
-interface UpdateUserData {
-  industry: string;
-  experience?: string;
-  bio?: string;
-  skills?: string[];
-}
-
-interface SalaryRange {
-  role: string;
-  min: number;
-  max: number;
-  median: number;
-  location: string;
-}
+import type { UpdateUserData, SalaryRange } from "@types";
 
 export async function updateUser(data: UpdateUserData) {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  const { userId: clerkUserId } = await auth();
+  if (!clerkUserId) throw new Error("Unauthorized");
 
-  // 1. Fetch Clerk user details
-  const clerkUser = await currentUser();
-  if (!clerkUser) throw new Error("User not authenticated");
+  try {
+    const dbUser = await db.user.findUnique({
+      where: { clerkUserId },
+      select: { id: true },
+    });
+    if (!dbUser) throw new Error("User not found in DB");
 
-  const email = clerkUser.emailAddresses[0]?.emailAddress || "";
-  const name = [clerkUser.firstName, clerkUser.lastName]
-    .filter(Boolean)
-    .join(" ");
+    const insights = await generateAIInsights(
+      data.industry,
+      data.skills,
+      data.experience
+    );
 
-  // 2. Check if industry exists first
-  let industryInsight = await db.industryInsight.findUnique({
-    where: { industry: data.industry },
-  });
-
-  let salaryRangesForDb: Prisma.InputJsonValue[] = [];
-
-  if (!industryInsight) {
-    // Generate AI insights outside the transaction
-    const insights = await generateAIInsights(data.industry);
-
-    salaryRangesForDb = (insights.salaryRanges as SalaryRange[]).map((r) => ({
+    const salaryRangesForDb: Prisma.InputJsonValue[] = (
+      insights.salaryRanges as SalaryRange[]
+    ).map((r) => ({
       role: r.role,
       min: r.min,
       max: r.max,
@@ -53,64 +33,62 @@ export async function updateUser(data: UpdateUserData) {
       location: r.location,
     }));
 
-    industryInsight = { ...insights, industry: data.industry } as undefined; // placeholder for transaction
-  }
+    await db.userInsight.upsert({
+      where: { userId: dbUser.id },
+      create: {
+        userId: dbUser.id,
+        industry: data.industry,
+        ...insights,
+        salaryRanges: salaryRangesForDb,
+        nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+      update: {
+        industry: data.industry,
+        ...insights,
+        salaryRanges: salaryRangesForDb,
+        nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
 
-  try {
-    // 3. Perform transaction for DB writes only
-    const result = await db.$transaction(async (tx) => {
-      // Create industry if missing
-      if (
-        !(await tx.industryInsight.findUnique({
-          where: { industry: data.industry },
-        }))
-      ) {
-        await tx.industryInsight.create({
-          data: {
-            industry: data.industry,
-            ...industryInsight,
-            salaryRanges: salaryRangesForDb,
-            nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          },
-        });
-      }
-
-      // Upsert user
-      const updatedUser = await tx.user.upsert({
-        where: { clerkUserId: userId },
-        update: {
-          industry: data.industry,
-          experience: data.experience,
-          bio: data.bio,
-          skills: data.skills || [],
-          name,
-          email,
-        },
-        create: {
-          clerkUserId: userId,
-          industry: data.industry,
-          experience: data.experience,
-          bio: data.bio,
-          skills: data.skills || [],
-          name,
-          email,
-        },
-      });
-
-      return updatedUser;
+    const updatedUser = await db.user.upsert({
+      where: { clerkUserId },
+      update: {
+        industry: data.industry,
+        experience: data.experience,
+        bio: data.bio,
+        skills: data.skills,
+      },
+      create: {
+        clerkUserId,
+        email: "",
+        name: "",
+        skills: data.skills || [],
+        industry: data.industry,
+        experience: data.experience,
+        bio: data.bio,
+      },
     });
 
     revalidatePath("/");
-    return result;
+    return updatedUser;
   } catch (error: unknown) {
-    console.error("Error updating user and industry:", error);
-    if (error instanceof Error)
+    if (error instanceof Error) {
+      console.error(
+        "Error updating user and industry:",
+        error.message,
+        error.stack
+      );
       throw new Error(`Failed to update profile: ${error.message}`);
-    throw new Error("Failed to update profile: Unknown error");
+    } else {
+      console.error("Unknown error updating user and industry:", String(error));
+      throw new Error("Failed to update profile: Unknown error");
+    }
   }
 }
 
-export async function getUserOnboardingStatus() {
+export async function getUserOnboardingStatus(): Promise<{
+  isOnboarded: boolean;
+}> {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -120,11 +98,22 @@ export async function getUserOnboardingStatus() {
       select: { industry: true },
     });
 
-    return { isOnboarded: !!user?.industry };
+    return {
+      isOnboarded: Boolean(user?.industry && user.industry.trim() !== ""),
+    };
   } catch (error: unknown) {
-    console.error("Error checking onboarding status:", error);
-    if (error instanceof Error)
-      throw new Error(`Failed to check onboarding status: ${error.message}`);
-    throw new Error("Failed to check onboarding status: Unknown error");
+    if (error instanceof Error) {
+      console.error(
+        "Error checking onboarding status:",
+        String(error.message),
+        String(error.stack)
+      );
+      throw new Error(
+        `Failed to check onboarding status: ${String(error.message)}`
+      );
+    } else {
+      console.error("Unknown error checking onboarding status:", String(error));
+      throw new Error("Failed to check onboarding status: Unknown error");
+    }
   }
 }

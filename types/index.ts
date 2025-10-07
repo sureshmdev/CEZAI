@@ -7,3 +7,4 @@ export * from "./resume";
 export * from "./coverLetter";
 export * from "./industryInsight";
 export * from "./interviewPrep";
+export * from "./onboarding";

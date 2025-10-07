@@ -29,10 +29,17 @@ import {
 import useFetch from "@/hooks/use-fetch";
 import { onboardingSchema } from "@/app/lib/schema";
 import { updateUser } from "@/actions/user";
+import type {
+  Industry,
+  OnboardingFormValues,
+  OnboardingFormProps,
+} from "@types";
 
-const OnboardingForm = ({ industries }) => {
+const OnboardingForm = ({ industries }: OnboardingFormProps) => {
   const router = useRouter();
-  const [selectedIndustry, setSelectedIndustry] = useState(null);
+  const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(
+    null
+  );
 
   const {
     loading: updateLoading,
@@ -46,11 +53,11 @@ const OnboardingForm = ({ industries }) => {
     formState: { errors },
     setValue,
     watch,
-  } = useForm({
+  } = useForm<OnboardingFormValues>({
     resolver: zodResolver(onboardingSchema),
   });
 
-  const onSubmit = async (values) => {
+  const onSubmit = async (values: OnboardingFormValues) => {
     try {
       const formattedIndustry = `${values.industry}-${values.subIndustry
         .toLowerCase()
@@ -59,6 +66,7 @@ const OnboardingForm = ({ industries }) => {
       await updateUserFn({
         ...values,
         industry: formattedIndustry,
+        skills: values.skills,
       });
     } catch (error) {
       console.error("Onboarding error:", error);
@@ -66,7 +74,7 @@ const OnboardingForm = ({ industries }) => {
   };
 
   useEffect(() => {
-    if (updateResult?.success && !updateLoading) {
+    if (updateResult && !updateLoading) {
       toast.success("Profile completed successfully!");
       router.push("/dashboard");
       router.refresh();
@@ -89,13 +97,14 @@ const OnboardingForm = ({ industries }) => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Industry */}
             <div className="space-y-2">
               <Label htmlFor="industry">Industry</Label>
               <Select
                 onValueChange={(value) => {
                   setValue("industry", value);
                   setSelectedIndustry(
-                    industries.find((ind) => ind.id === value)
+                    industries.find((ind) => ind.id === value) || null
                   );
                   setValue("subIndustry", "");
                 }}
@@ -116,11 +125,12 @@ const OnboardingForm = ({ industries }) => {
               </Select>
               {errors.industry && (
                 <p className="text-sm text-red-500">
-                  {errors.industry.message.toString()}
+                  {errors.industry.message}
                 </p>
               )}
             </div>
 
+            {/* Sub-Industry */}
             {watchIndustry && (
               <div className="space-y-2">
                 <Label htmlFor="subIndustry">Specialization</Label>
@@ -143,12 +153,13 @@ const OnboardingForm = ({ industries }) => {
                 </Select>
                 {errors.subIndustry && (
                   <p className="text-sm text-red-500">
-                    {errors.subIndustry.message.toString()}
+                    {errors.subIndustry.message}
                   </p>
                 )}
               </div>
             )}
 
+            {/* Experience */}
             <div className="space-y-2">
               <Label htmlFor="experience">Years of Experience</Label>
               <Input
@@ -161,11 +172,12 @@ const OnboardingForm = ({ industries }) => {
               />
               {errors.experience && (
                 <p className="text-sm text-red-500">
-                  {errors.experience.message.toString()}
+                  {errors.experience.message}
                 </p>
               )}
             </div>
 
+            {/* Skills */}
             <div className="space-y-2">
               <Label htmlFor="skills">Skills</Label>
               <Input
@@ -177,10 +189,11 @@ const OnboardingForm = ({ industries }) => {
                 Separate multiple skills with commas
               </p>
               {errors.skills && (
-                <p className="text-sm text-red-500">{errors.skills.message.toString()}</p>
+                <p className="text-sm text-red-500">{errors.skills.message}</p>
               )}
             </div>
 
+            {/* Bio */}
             <div className="space-y-2">
               <Label htmlFor="bio">Professional Bio</Label>
               <Textarea
@@ -190,7 +203,7 @@ const OnboardingForm = ({ industries }) => {
                 {...register("bio")}
               />
               {errors.bio && (
-                <p className="text-sm text-red-500">{errors.bio.message.toString()}</p>
+                <p className="text-sm text-red-500">{errors.bio.message}</p>
               )}
             </div>
 

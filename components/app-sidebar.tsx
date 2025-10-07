@@ -10,6 +10,8 @@ import {
   LifeBuoy,
   PieChart,
   Send,
+  UserPen,
+  Map,
 } from "lucide-react";
 import { SignedIn, UserButton, useUser } from "@clerk/nextjs";
 
@@ -48,9 +50,19 @@ const navMainItems = [
     icon: FileQuestionMark,
   },
   {
+    title: "Roadmap",
+    url: "/comming-soon",
+    icon: Map,
+  },
+  {
     title: "Interview Prep",
     url: "/comming-soon",
     icon: Bot,
+  },
+  {
+    title: "Profile",
+    url: "/onboarding",
+    icon: UserPen,
   },
 ];
 

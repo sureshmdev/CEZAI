@@ -1,7 +1,8 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "./prisma";
+import { User } from "@types";
 
-export const checkUser = async () => {
+export const checkUser = async (): Promise<User | null> => {
   const user = await currentUser();
 
   if (!user) {
@@ -16,7 +17,7 @@ export const checkUser = async () => {
     });
 
     if (loggedInUser) {
-      return loggedInUser;
+      return loggedInUser as User;
     }
 
     const name = `${user.firstName} ${user.lastName}`;
@@ -30,8 +31,13 @@ export const checkUser = async () => {
       },
     });
 
-    return newUser;
-  } catch (error) {
-    console.log(error.message);
+    return newUser as User;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.log(err.message);
+    } else {
+      console.log("An unknown error occurred");
+    }
+    return null;
   }
 };
