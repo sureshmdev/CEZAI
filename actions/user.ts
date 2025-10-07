@@ -7,17 +7,22 @@ import { Prisma } from "@prisma/client";
 import type { UpdateUserData, SalaryRange } from "@types";
 
 export async function updateUser(data: UpdateUserData) {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  const { userId: clerkUserId } = await auth();
+  if (!clerkUserId) throw new Error("Unauthorized");
 
   try {
+    const dbUser = await db.user.findUnique({
+      where: { clerkUserId },
+      select: { id: true },
+    });
+    if (!dbUser) throw new Error("User not found in DB");
+
     const insights = await generateAIInsights(
       data.industry,
       data.skills,
       data.experience
     );
 
-    // Convert SalaryRange[] into Prisma.InputJsonValue[]
     const salaryRangesForDb: Prisma.InputJsonValue[] = (
       insights.salaryRanges as SalaryRange[]
     ).map((r) => ({
@@ -28,27 +33,25 @@ export async function updateUser(data: UpdateUserData) {
       location: r.location,
     }));
 
-    let industryInsight = await db.industryInsight.findUnique({
-      where: {
+    await db.userInsight.upsert({
+      where: { userId: dbUser.id },
+      create: {
+        userId: dbUser.id,
         industry: data.industry,
+        ...insights,
+        salaryRanges: salaryRangesForDb,
+        nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+      update: {
+        industry: data.industry,
+        ...insights,
+        salaryRanges: salaryRangesForDb,
+        nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
     });
 
-    if (!industryInsight) {
-      industryInsight = await db.industryInsight.create({
-        data: {
-          ...insights,
-          industry: data.industry,
-          salaryRanges: salaryRangesForDb,
-          nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days later
-        },
-      });
-    }
-
     const updatedUser = await db.user.upsert({
-      where: {
-        clerkUserId: userId,
-      },
+      where: { clerkUserId },
       update: {
         industry: data.industry,
         experience: data.experience,
@@ -56,7 +59,7 @@ export async function updateUser(data: UpdateUserData) {
         skills: data.skills,
       },
       create: {
-        clerkUserId: userId,
+        clerkUserId,
         email: "",
         name: "",
         skills: data.skills || [],
@@ -77,7 +80,7 @@ export async function updateUser(data: UpdateUserData) {
       );
       throw new Error(`Failed to update profile: ${error.message}`);
     } else {
-      console.error("Unknown error updating user and industry:", error);
+      console.error("Unknown error updating user and industry:", String(error));
       throw new Error("Failed to update profile: Unknown error");
     }
   }
@@ -91,15 +94,13 @@ export async function getUserOnboardingStatus(): Promise<{
 
   try {
     const user = await db.user.findUnique({
-      where: {
-        clerkUserId: userId,
-      },
-      select: {
-        industry: true,
-      },
+      where: { clerkUserId: userId },
+      select: { industry: true },
     });
 
-    return { isOnboarded: !!user?.industry };
+    return {
+      isOnboarded: Boolean(user?.industry && user.industry.trim() !== ""),
+    };
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error(

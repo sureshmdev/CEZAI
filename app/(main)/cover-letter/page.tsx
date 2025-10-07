@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CoverLetterList from "./_components/cover-letter-list";
-import { CoverLetter } from "@prisma/client"; // ✅ Use Prisma type
+import { CoverLetter } from "@prisma/client"; //
 
 export default async function CoverLetterPage() {
   const coverLetters: CoverLetter[] = await getCoverLetters();

@@ -33,7 +33,7 @@ import type {
   Industry,
   OnboardingFormValues,
   OnboardingFormProps,
-} from "@/types/onboarding";
+} from "@types";
 
 const OnboardingForm = ({ industries }: OnboardingFormProps) => {
   const router = useRouter();
@@ -66,7 +66,7 @@ const OnboardingForm = ({ industries }: OnboardingFormProps) => {
       await updateUserFn({
         ...values,
         industry: formattedIndustry,
-        skills: values.skills.split(",").map((s) => s.trim()),
+        skills: values.skills,
       });
     } catch (error) {
       console.error("Onboarding error:", error);
@@ -168,7 +168,7 @@ const OnboardingForm = ({ industries }: OnboardingFormProps) => {
                 min="0"
                 max="50"
                 placeholder="Enter years of experience"
-                {...register("experience", { valueAsNumber: true })}
+                {...register("experience")}
               />
               {errors.experience && (
                 <p className="text-sm text-red-500">

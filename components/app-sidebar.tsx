@@ -45,8 +45,8 @@ const navMainItems = [
     icon: CopyCheck,
   },
   {
-    title: "Interview Prep",
-    url: "/interview-prep",
+    title: "Mock Interview",
+    url: "/mock-interview",
     icon: Bot,
   },
   {

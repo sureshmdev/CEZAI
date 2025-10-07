@@ -15,7 +15,7 @@ export interface OnboardingFormValues {
   industry: string;
   subIndustry: string;
   experience: number;
-  skills: string;
+  skills: string[];
   bio: string;
 }
 
