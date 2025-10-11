@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -22,30 +23,55 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { createMockInterview } from "@/actions/mock-interview";
+import { toast } from "sonner";
 
 function AddNewInterview() {
-  const [openDialog, setOpenDailog] = useState(false);
-  const [position, setPosition] = useState();
-  const [description, setDescription] = useState();
-  const [experience, setExperience] = useState();
-  const [type, setType] = useState();
+  const router = useRouter();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = (e) => {
+  const [position, setPosition] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [experience, setExperience] = useState<string>("");
+  const [type, setType] = useState<string>("");
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(position, description, experience, type);
+    setLoading(true);
+
+    try {
+      const result = await createMockInterview({
+        position,
+        description,
+        experience: Number(experience),
+        type,
+      });
+
+      toast.success("Interview created successfully!");
+      setOpenDialog(false);
+
+      // Navigate to the interview page
+      router.push(`/mock-interview/interview/${result.mockId}`);
+    } catch (error) {
+      console.error("Error creating interview:", error);
+      toast.error("Failed to create interview. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div>
       <div
         className="p-10 border rounded-lg bg-secondary max-w-2xs hover:scale-105 hover:shadow-md cursor-pointer transition-all"
-        onClick={() => setOpenDailog(true)}
+        onClick={() => setOpenDialog(true)}
       >
         <h2 className="font-bold text-lg text-center">+ Add New</h2>
       </div>
-      <Dialog open={openDialog}>
-        <DialogTrigger>Open</DialogTrigger>
-        <DialogContent className="text-2xl">
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogTrigger className="hidden">Open</DialogTrigger>
+        <DialogContent className="text-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl">
               Tell us more about your interview
@@ -60,6 +86,7 @@ function AddNewInterview() {
                 <Input
                   placeholder="Enter your job role / position"
                   required
+                  value={position}
                   onChange={(event) => setPosition(event.target.value)}
                 />
               </div>
@@ -68,6 +95,7 @@ function AddNewInterview() {
                 <Textarea
                   placeholder="Enter your job Description / Tech Stack"
                   required
+                  value={description}
                   onChange={(event) => setDescription(event.target.value)}
                 />
                 <p className="text-sm text-muted-foreground">
@@ -75,19 +103,20 @@ function AddNewInterview() {
                 </p>
               </div>
               <div className="mt-7 my-2 space-y-2">
-                <Label>Years of Experinece</Label>
+                <Label>Years of Experience</Label>
                 <Input
-                  placeholder="Enter your years of experinence"
+                  placeholder="Enter your years of experience"
                   type="number"
                   min="0"
                   max="50"
                   required
+                  value={experience}
                   onChange={(event) => setExperience(event.target.value)}
                 />
               </div>
               <div className="mt-7 my-2 space-y-2">
                 <Label>Type of Interview</Label>
-                <Select onValueChange={(value) => setType(value)}>
+                <Select onValueChange={(value) => setType(value)} value={type}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Interview Type" />
                   </SelectTrigger>
@@ -103,7 +132,7 @@ function AddNewInterview() {
                       <SelectItem value="situational">Situational</SelectItem>
                       <SelectItem value="panel">Panel</SelectItem>
                       <SelectItem value="case">Case</SelectItem>
-                      <SelectItem value="unstructued">Unstructured</SelectItem>
+                      <SelectItem value="unstructured">Unstructured</SelectItem>
                       <SelectItem value="final">Final/On-site</SelectItem>
                       <SelectItem value="stress">Stress</SelectItem>
                     </SelectGroup>
@@ -115,11 +144,14 @@ function AddNewInterview() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setOpenDailog(false)}
+                  onClick={() => setOpenDialog(false)}
+                  disabled={loading}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Start Interview</Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Creating..." : "Start Interview"}
+                </Button>
               </div>
             </form>
           </DialogHeader>

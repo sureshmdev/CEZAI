@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState, useCallback, useRef } from "react";
 
 // More human-sounding filler words (phonetically tuned)
@@ -71,7 +72,7 @@ function useHumanTTS() {
         const utter = new SpeechSynthesisUtterance(sentence);
         utter.voice = getBestVoice() || null;
         utter.rate = 0.9;
-        utter.pitch = 1.05;
+        utter.pitch = 0.9;
         utter.volume = 0.4;
 
         await new Promise<void>((resolve) => {
@@ -101,7 +102,7 @@ function useHumanTTS() {
 export default function InterviewerTTS() {
   const { speak, stop, isSpeaking } = useHumanTTS();
   const [text, setText] = useState(
-    "Hi, I’m your interviewer. Could you tell me about a time you overcame a major challenge at work?"
+    "Given your extensive frontend experience, describe a complex React component you architected, focusing on your decisions regarding state management and component composition"
   );
   const [bgEnabled, setBgEnabled] = useState(true);
   const bgAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -145,7 +146,7 @@ export default function InterviewerTTS() {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-12 p-6 border rounded-2xl shadow-sm space-y-4 bg-white">
+    <div className="max-w-xl mx-auto mt-12 p-6 border rounded-2xl shadow-sm space-y-4">
       <h2 className="text-xl font-semibold">🎙️ Realistic Interviewer Voice</h2>
 
       <textarea
@@ -156,19 +157,12 @@ export default function InterviewerTTS() {
       />
 
       <div className="flex gap-3 items-center">
-        <button
-          onClick={handleSpeak}
-          disabled={isSpeaking}
-          className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50"
-        >
+        <Button onClick={handleSpeak} disabled={isSpeaking}>
           {isSpeaking ? "Speaking..." : "Speak as Interviewer"}
-        </button>
-        <button
-          onClick={handleStop}
-          className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
-        >
+        </Button>
+        <Button onClick={handleStop} variant="outline">
           Stop
-        </button>
+        </Button>
         <label className="ml-auto flex items-center gap-2 text-sm text-gray-600">
           <input
             type="checkbox"
@@ -180,7 +174,7 @@ export default function InterviewerTTS() {
       </div>
 
       <p className="text-sm text-gray-500">
-        Each play randomly picks between office, people, or café background.
+        Each play randomly picks between office, people, or cafe background.
         Filler words are phonetically tuned for more natural pronunciation.
       </p>
     </div>

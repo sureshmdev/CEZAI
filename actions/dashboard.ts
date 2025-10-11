@@ -7,7 +7,7 @@ import type { UserInsight as UserInsightsType, SalaryRange } from "@types";
 import type { Prisma } from "@prisma/client";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 export const generateAIInsights = async (
   industry: string,

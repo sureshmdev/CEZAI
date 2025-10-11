@@ -178,7 +178,7 @@ model MockInterview {
   mockResponse   Json
   position       String
   description    String
-  experience     String
+  experience     Int
   type           String
 
   createdAt      DateTime @default(now())
