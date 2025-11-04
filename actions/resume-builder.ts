@@ -6,11 +6,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { revalidatePath } from "next/cache";
 import { Resume } from "@types";
 
-<<<<<<< HEAD:actions/resume.ts
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-=======
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
->>>>>>> suresh:actions/resume-builder.ts
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 interface ImproveWithAIParams {
@@ -74,13 +70,7 @@ export async function improveWithAI({
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
-<<<<<<< HEAD:actions/resume.ts
-    include: {
-      userInsight: true,
-    },
-=======
-    include: { industryInsight: true },
->>>>>>> suresh:actions/resume-builder.ts
+    include: { userInsight: true },
   });
 
   if (!user) throw new Error("User not found");
