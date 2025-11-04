@@ -2,16 +2,16 @@
 
 import * as React from "react";
 import {
-  BookOpen,
   Bot,
-  FileQuestionMark,
   Command,
-  Frame,
   LifeBuoy,
-  PieChart,
   Send,
-  UserPen,
   Map,
+  UserPen,
+  FileText,
+  SquarePen,
+  LayoutDashboard,
+  CopyCheck,
 } from "lucide-react";
 import { SignedIn, UserButton, useUser } from "@clerk/nextjs";
 
@@ -31,23 +31,33 @@ const navMainItems = [
   {
     title: "Dashboard",
     url: "/dashboard",
-    icon: PieChart,
+    icon: LayoutDashboard,
     isActive: true,
   },
   {
-    title: "Resume",
-    url: "/resume",
-    icon: BookOpen,
-  },
-  {
-    title: "Cover Letter",
-    url: "/ai-cover-letter",
-    icon: Frame,
+    title: "Roadmap",
+    url: "/career-roadmap",
+    icon: Map,
   },
   {
     title: "Smart Assessment",
-    url: "/interview",
-    icon: FileQuestionMark,
+    url: "/smart-assessment",
+    icon: CopyCheck,
+  },
+  {
+    title: "Mock Interview",
+    url: "/mock-interview",
+    icon: Bot,
+  },
+  {
+    title: "Resume",
+    url: "/resume-builder",
+    icon: FileText,
+  },
+  {
+    title: "Cover Letter",
+    url: "/cover-letter",
+    icon: SquarePen,
   },
   {
     title: "Roadmap",
@@ -55,9 +65,9 @@ const navMainItems = [
     icon: Map,
   },
   {
-    title: "Interview Prep",
-    url: "/comming-soon",
-    icon: Bot,
+    title: "Profile",
+    url: "/onboarding",
+    icon: UserPen,
   },
   {
     title: "Profile",

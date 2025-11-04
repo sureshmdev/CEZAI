@@ -40,6 +40,7 @@ export function SiteHeader() {
     "smart-assessment": "Smart Assessment",
     "cover-letter": "Cover Letter",
     "resume-builder": "Resume Builder",
+    onboarding: "Profile",
   };
 
   return (

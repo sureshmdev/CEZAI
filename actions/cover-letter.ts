@@ -3,11 +3,23 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import type {
+  UpdateCoverLetterInput,
+  GenerateCoverLetterInput,
+  CoverLetter,
+} from "@types";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Ensure env var exists
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error("GEMINI_API_KEY is not set");
+}
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-export async function generateCoverLetter(data) {
+export async function generateCoverLetter(
+  data: GenerateCoverLetterInput
+): Promise<CoverLetter> {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -29,7 +41,7 @@ export async function generateCoverLetter(data) {
     - Professional Background: ${user.bio}
     
     Job Description:
-    ${data.jobDescription}
+    ${data.jobDescription ?? ""}
     
     Requirements:
     1. Use a professional, enthusiastic tone
@@ -50,7 +62,7 @@ export async function generateCoverLetter(data) {
     const coverLetter = await db.coverLetter.create({
       data: {
         content,
-        jobDescription: data.jobDescription,
+        jobDescription: data.jobDescription ?? null,
         companyName: data.companyName,
         jobTitle: data.jobTitle,
         status: "completed",
@@ -58,14 +70,18 @@ export async function generateCoverLetter(data) {
       },
     });
 
-    return coverLetter;
-  } catch (error) {
-    console.error("Error generating cover letter:", error.message);
+    return coverLetter as CoverLetter;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Error generating cover letter:", error.message);
+    } else {
+      console.error("Unknown error generating cover letter:", error);
+    }
     throw new Error("Failed to generate cover letter");
   }
 }
 
-export async function getCoverLetters() {
+export async function getCoverLetters(): Promise<CoverLetter[]> {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -75,17 +91,13 @@ export async function getCoverLetters() {
 
   if (!user) throw new Error("User not found");
 
-  return await db.coverLetter.findMany({
-    where: {
-      userId: user.id,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  return db.coverLetter.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+  }) as Promise<CoverLetter[]>;
 }
 
-export async function getCoverLetter(id) {
+export async function getCoverLetter(id: string): Promise<CoverLetter | null> {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -95,15 +107,14 @@ export async function getCoverLetter(id) {
 
   if (!user) throw new Error("User not found");
 
-  return await db.coverLetter.findUnique({
-    where: {
-      id,
-      userId: user.id,
-    },
-  });
+  return db.coverLetter.findUnique({
+    where: { id, userId: user.id },
+  }) as Promise<CoverLetter | null>;
 }
 
-export async function deleteCoverLetter(id) {
+export async function updateCoverLetter(
+  data: UpdateCoverLetterInput
+): Promise<CoverLetter> {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -113,10 +124,29 @@ export async function deleteCoverLetter(id) {
 
   if (!user) throw new Error("User not found");
 
-  return await db.coverLetter.delete({
+  return db.coverLetter.update({
     where: {
-      id,
+      id: data.id,
       userId: user.id,
     },
+    data: {
+      content: data.content,
+      status: "completed",
+    },
+  }) as Promise<CoverLetter>;
+}
+
+export async function deleteCoverLetter(id: string): Promise<CoverLetter> {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await db.user.findUnique({
+    where: { clerkUserId: userId },
   });
+
+  if (!user) throw new Error("User not found");
+
+  return db.coverLetter.delete({
+    where: { id, userId: user.id },
+  }) as Promise<CoverLetter>;
 }
