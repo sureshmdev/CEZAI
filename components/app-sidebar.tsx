@@ -69,11 +69,6 @@ const navMainItems = [
     url: "/onboarding",
     icon: UserPen,
   },
-  {
-    title: "Profile",
-    url: "/onboarding",
-    icon: UserPen,
-  },
 ];
 
 const navSecondaryItems = [
