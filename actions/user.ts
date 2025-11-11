@@ -1,6 +1,6 @@
 "use server";
 import { db } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { generateAIInsights } from "./dashboard";
 import { Prisma } from "@prisma/client";
@@ -11,12 +11,31 @@ export async function updateUser(data: UpdateUserData) {
   if (!clerkUserId) throw new Error("Unauthorized");
 
   try {
-    const dbUser = await db.user.findUnique({
-      where: { clerkUserId },
-      select: { id: true },
-    });
-    if (!dbUser) throw new Error("User not found in DB");
+    // Get user details from Clerk
+    const clerkUser = await currentUser();
+    if (!clerkUser) throw new Error("User not found in Clerk");
 
+    // First, upsert the user (create if doesn't exist, update if exists)
+    const updatedUser = await db.user.upsert({
+      where: { clerkUserId },
+      update: {
+        industry: data.industry,
+        experience: data.experience,
+        bio: data.bio,
+        skills: data.skills,
+      },
+      create: {
+        clerkUserId,
+        email: clerkUser.emailAddresses[0]?.emailAddress || "",
+        name: clerkUser.fullName || clerkUser.username || "",
+        skills: data.skills || [],
+        industry: data.industry,
+        experience: data.experience,
+        bio: data.bio,
+      },
+    });
+
+    // Generate AI insights
     const insights = await generateAIInsights(
       data.industry,
       data.skills,
@@ -33,10 +52,11 @@ export async function updateUser(data: UpdateUserData) {
       location: r.location,
     }));
 
+    // Now create/update the user insights
     await db.userInsight.upsert({
-      where: { userId: dbUser.id },
+      where: { userId: updatedUser.id },
       create: {
-        userId: dbUser.id,
+        userId: updatedUser.id,
         industry: data.industry,
         ...insights,
         salaryRanges: salaryRangesForDb,
@@ -47,25 +67,6 @@ export async function updateUser(data: UpdateUserData) {
         ...insights,
         salaryRanges: salaryRangesForDb,
         nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-    });
-
-    const updatedUser = await db.user.upsert({
-      where: { clerkUserId },
-      update: {
-        industry: data.industry,
-        experience: data.experience,
-        bio: data.bio,
-        skills: data.skills,
-      },
-      create: {
-        clerkUserId,
-        email: "",
-        name: "",
-        skills: data.skills || [],
-        industry: data.industry,
-        experience: data.experience,
-        bio: data.bio,
       },
     });
 
