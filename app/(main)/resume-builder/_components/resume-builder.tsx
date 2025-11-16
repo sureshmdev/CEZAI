@@ -23,7 +23,6 @@ import useFetch from "@/hooks/use-fetch";
 import { useUser } from "@clerk/nextjs";
 import { entriesToMarkdown } from "@/app/lib/helper";
 import { resumeSchema } from "@/app/lib/schema";
-import html2pdf from "html2pdf.js/dist/html2pdf.min.js";
 
 import type {
   ContactInfo,
@@ -31,6 +30,7 @@ import type {
   MarkdownEntry,
   ResumeFormValues,
 } from "@types";
+type JsPDFInstance = import("jspdf").jsPDF;
 
 // --------------------------- COMPONENT ---------------------------
 export default function ResumeBuilder({
@@ -42,6 +42,29 @@ export default function ResumeBuilder({
   const [previewContent, setPreviewContent] = useState(initialContent);
   const { user } = useUser();
   const [resumeMode, setResumeMode] = useState<PreviewType>("preview");
+
+  const upgradeLegacyHeader = useCallback((content: string) => {
+    const headerRegex =
+      /##\s*<div[^>]*align=["']center["'][^>]*>(.*?)<\/div>\s*<div[^>]*align=["']center["'][^>]*>\s*([\s\S]*?)\s*<\/div>/i;
+
+    return content.replace(headerRegex, (_, name, contactBlock) => {
+      const safeName = name.trim();
+      const contactLine = contactBlock
+        .split("|")
+        .map((item: string) => item.trim())
+        .filter(Boolean)
+        .join(" | ");
+
+      const nameMarkup = safeName
+        ? `<h1 style="text-align:center;margin:0;font-size:2rem;font-weight:bold;">${safeName}</h1>`
+        : "";
+      const contactMarkup = contactLine
+        ? `<p style="text-align:center;margin-top:0.5rem;">${contactLine}</p>`
+        : "";
+
+      return [nameMarkup, contactMarkup].filter(Boolean).join("\n\n");
+    });
+  }, []);
 
   const {
     control,
@@ -70,6 +93,14 @@ export default function ResumeBuilder({
   const formValues = watch();
 
   useEffect(() => {
+    if (initialContent && initialContent.includes('## <div align="center">')) {
+      setPreviewContent((prev) =>
+        prev === initialContent ? upgradeLegacyHeader(initialContent) : prev
+      );
+    }
+  }, [initialContent, upgradeLegacyHeader]);
+
+  useEffect(() => {
     if (initialContent) setActiveTab("preview");
   }, [initialContent]);
 
@@ -77,16 +108,32 @@ export default function ResumeBuilder({
   const getContactMarkdown = useCallback(() => {
     const { contactInfo } = formValues;
     const parts: string[] = [];
-    if (contactInfo?.email) parts.push(`📧 ${contactInfo.email}`);
-    if (contactInfo?.mobile) parts.push(`📱 ${contactInfo.mobile}`);
+
+    const name = user?.fullName ?? "";
+
+    // Build contact info parts with clickable links
+    if (contactInfo?.email)
+      parts.push(`[${contactInfo.email}](mailto:${contactInfo.email})`);
+    if (contactInfo?.mobile)
+      parts.push(`[${contactInfo.mobile}](tel:${contactInfo.mobile})`);
     if (contactInfo?.linkedin)
       parts.push(`[LinkedIn](${contactInfo.linkedin})`);
     if (contactInfo?.twitter) parts.push(`[Twitter](${contactInfo.twitter})`);
 
-    return parts.length > 0
-      ? `## <div align="center">${user?.fullName ?? ""}</div>
-\n\n<div align="center">\n\n${parts.join(" | ")}\n\n</div>`
+    // Create centered name
+    const nameMarkup = name
+      ? `<h1 style="text-align:center;margin:0;font-size:2rem;font-weight:bold;">${name}</h1>`
       : "";
+
+    // Create centered contact info on separate line
+    const contactMarkup =
+      parts.length > 0
+        ? `<p style="text-align:center;margin-top:0.5rem;">${parts.join(
+            " | "
+          )}</p>`
+        : "";
+
+    return [nameMarkup, contactMarkup].filter(Boolean).join("\n\n");
   }, [formValues, user]);
 
   // --------------------------- COMBINED MARKDOWN ---------------------------
@@ -104,11 +151,24 @@ export default function ResumeBuilder({
 
     return [
       getContactMarkdown(),
-      summary && `## Professional Summary\n\n${summary}`,
-      skills && `## Skills\n\n${skills}`,
-      entriesToMarkdown(mapEntries(experience), "Work Experience"),
-      entriesToMarkdown(mapEntries(education), "Education"),
-      entriesToMarkdown(mapEntries(projects), "Projects"),
+      summary &&
+        `<h2 style="font-weight:bold;">Professional Summary</h2>\n\n${summary}`,
+      skills && `<h2 style="font-weight:bold;">Skills</h2>\n\n${skills}`,
+      experience.length > 0 &&
+        `<h2 style="font-weight:bold;">Work Experience</h2>\n\n${entriesToMarkdown(
+          mapEntries(experience),
+          ""
+        )}`,
+      education.length > 0 &&
+        `<h2 style="font-weight:bold;">Education</h2>\n\n${entriesToMarkdown(
+          mapEntries(education),
+          ""
+        )}`,
+      projects.length > 0 &&
+        `<h2 style="font-weight:bold;">Projects</h2>\n\n${entriesToMarkdown(
+          mapEntries(projects),
+          ""
+        )}`,
     ]
       .filter(Boolean)
       .join("\n\n");
@@ -147,18 +207,263 @@ export default function ResumeBuilder({
   // --------------------------- PDF GENERATION ---------------------------
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const PAGE_MARGIN = 12;
+
+  const addTextBlock = (
+    doc: JsPDFInstance,
+    text: string,
+    options: {
+      fontSize?: number;
+      fontStyle?: "normal" | "bold";
+      lineHeight?: number;
+      indent?: number;
+      spacingBefore?: number;
+    },
+    cursor: { y: number }
+  ) => {
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const maxWidth = doc.internal.pageSize.getWidth() - PAGE_MARGIN * 2;
+    const {
+      fontSize = 11,
+      fontStyle = "normal",
+      lineHeight = 5.5,
+      indent = 0,
+      spacingBefore = 1,
+    } = options;
+
+    cursor.y += spacingBefore;
+
+    doc.setFont("helvetica", fontStyle);
+    doc.setFontSize(fontSize);
+
+    const lines = doc.splitTextToSize(text, maxWidth - indent);
+
+    lines.forEach((line) => {
+      if (cursor.y + lineHeight > pageHeight - PAGE_MARGIN) {
+        doc.addPage();
+        cursor.y = PAGE_MARGIN;
+      }
+      doc.text(line, PAGE_MARGIN + indent, cursor.y);
+      cursor.y += lineHeight;
+    });
+  };
+
+  const sanitizeContent = (value: string) =>
+    value
+      .replace(/\r\n/g, "\n")
+      .replace(/<h1[^>]*>(.*?)<\/h1>/gi, "$1")
+      .replace(/<h2[^>]*>(.*?)<\/h2>/gi, "$1")
+      .replace(/<p[^>]*>(.*?)<\/p>/gi, "$1\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<div[^>]*>/gi, "\n")
+      .replace(/<\/div>/gi, "\n")
+      .replace(/<\/?strong>/gi, "")
+      .replace(/<\/?em>/gi, "")
+      .replace(/<\/?span[^>]*>/gi, "")
+      .replace(/\*\*/g, "")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/^##\s+/gm, "")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\t+/g, " ")
+      .replace(/ {2,}/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/[^\x20-\x7E\n•]/g, "")
+      .trim();
+
+  const splitContent = (value: string) => {
+    const sanitized = sanitizeContent(value);
+    const lines = sanitized.split("\n").map((line) => line.trimEnd());
+    const headerLines: string[] = [];
+    const bodyLines: string[] = [];
+    let readingHeader = true;
+
+    lines.forEach((originalLine) => {
+      const line = originalLine.trim();
+
+      if (!line) {
+        if (!readingHeader) bodyLines.push("");
+        return;
+      }
+
+      const looksStructured =
+        /^#{1,6}\s+/.test(line) ||
+        /^[-*+]\s+/.test(line) ||
+        /^\d+\.\s+/.test(line) ||
+        line.startsWith("```") ||
+        /^(Professional Summary|Skills|Education|Projects|Work Experience)$/i.test(
+          line
+        );
+
+      if (readingHeader && !looksStructured) {
+        headerLines.push(line);
+        return;
+      }
+
+      readingHeader = false;
+      bodyLines.push(originalLine);
+    });
+
+    return { headerLines, bodyLines };
+  };
+
   const generatePDF = async () => {
     setIsGenerating(true);
     try {
-      const element = document.getElementById("resume-pdf");
-      const opt = {
-        margin: [15, 15],
-        filename: "resume.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      };
-      if (element) await html2pdf().set(opt).from(element).save();
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait",
+      });
+
+      const margin = 12;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const { headerLines, bodyLines } = splitContent(previewContent);
+      const cursor = { y: 20 };
+
+      // ===========================
+      // 🧠 HEADER
+      // ===========================
+      if (headerLines.length > 0) {
+        const [name, contactLine] = headerLines;
+
+        // Name — bold, centered, large
+        if (name) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(24);
+          doc.text(name, pageWidth / 2, cursor.y, {
+            align: "center",
+          });
+          cursor.y += 7;
+        }
+
+        // Contact info — centered below name
+        if (contactLine) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10);
+          doc.text(contactLine, pageWidth / 2, cursor.y, {
+            align: "center",
+            maxWidth: pageWidth - margin * 2,
+          });
+          cursor.y += 8;
+        }
+
+        // Divider line
+        doc.setDrawColor(180);
+        doc.setLineWidth(0.1);
+        doc.line(margin, cursor.y, pageWidth - margin, cursor.y);
+        cursor.y += 6;
+      }
+
+      const lines = bodyLines;
+      const sectionHeaders = [
+        "Professional Summary",
+        "Skills",
+        "Education",
+        "Projects",
+        "Work Experience",
+      ];
+
+      lines.forEach((line) => {
+        const trimmed = line.trim();
+        const normalized = trimmed
+          .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
+          .replace(/\*\*(.*?)\*\*/g, "$1");
+
+        if (!trimmed) {
+          cursor.y += 2;
+          return;
+        }
+
+        // Check if line is a section header
+        if (sectionHeaders.includes(trimmed)) {
+          addTextBlock(
+            doc,
+            trimmed,
+            {
+              fontSize: 16,
+              fontStyle: "bold",
+              lineHeight: 8,
+              spacingBefore: 6,
+            },
+            cursor
+          );
+          cursor.y += 2;
+          return;
+        }
+
+        if (trimmed.startsWith("### ")) {
+          addTextBlock(
+            doc,
+            normalized.replace(/^###\s+/, ""),
+            {
+              fontSize: 13,
+              fontStyle: "bold",
+              lineHeight: 6.5,
+              spacingBefore: 4,
+            },
+            cursor
+          );
+          cursor.y += 1.5;
+          return;
+        }
+
+        if (trimmed.startsWith("## ")) {
+          addTextBlock(
+            doc,
+            normalized.replace(/^##\s+/, ""),
+            {
+              fontSize: 15,
+              fontStyle: "bold",
+              lineHeight: 7.5,
+              spacingBefore: 5,
+            },
+            cursor
+          );
+          cursor.y += 2;
+          return;
+        }
+
+        if (trimmed.startsWith("# ")) {
+          addTextBlock(
+            doc,
+            normalized.replace(/^#\s+/, ""),
+            {
+              fontSize: 18,
+              fontStyle: "bold",
+              lineHeight: 9,
+              spacingBefore: 8,
+            },
+            cursor
+          );
+          cursor.y += 3;
+          return;
+        }
+
+        if (trimmed.startsWith("- ")) {
+          addTextBlock(
+            doc,
+            `• ${normalized.slice(2)}`,
+            { fontSize: 11, lineHeight: 5.2, indent: 4, spacingBefore: 1.5 },
+            cursor
+          );
+          cursor.y += 0.5;
+          return;
+        }
+
+        addTextBlock(
+          doc,
+          normalized,
+          { fontSize: 11, lineHeight: 5.2, spacingBefore: 1.5 },
+          cursor
+        );
+        cursor.y += 1;
+      });
+
+      doc.save("resume.pdf");
     } catch (error) {
       console.error("PDF generation error:", error);
     } finally {
@@ -168,7 +473,7 @@ export default function ResumeBuilder({
 
   // --------------------------- RENDER ---------------------------
   return (
-    <div data-color-mode="light" className="space-y-4">
+    <div data-color-mode="light" className="relative space-y-4">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-2">
         <h1 className="font-bold gradient-title text-5xl md:text-6xl">
@@ -217,7 +522,7 @@ export default function ResumeBuilder({
 
         {/* FORM TAB */}
         <TabsContent value="edit">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          <div className="space-y-8">
             {/* CONTACT INFO */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Contact Information</h3>
@@ -309,7 +614,7 @@ export default function ResumeBuilder({
                 )}
               </div>
             ))}
-          </form>
+          </div>
         </TabsContent>
 
         {/* PREVIEW TAB */}
@@ -353,15 +658,6 @@ export default function ResumeBuilder({
               height={800}
               preview={resumeMode}
             />
-          </div>
-
-          <div className="hidden">
-            <div id="resume-pdf">
-              <MDEditor.Markdown
-                source={previewContent}
-                style={{ background: "white", color: "black" }}
-              />
-            </div>
           </div>
         </TabsContent>
       </Tabs>
