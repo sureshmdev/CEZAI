@@ -588,32 +588,36 @@ export default function ResumeBuilder({
             </div>
 
             {/* EXPERIENCE, EDUCATION, PROJECTS */}
-            {["experience", "education", "projects"].map((section) => (
-              <div key={section} className="space-y-4">
-                <h3 className="text-lg font-medium">
-                  {section.charAt(0).toUpperCase() + section.slice(1)}
-                </h3>
-                <Controller
-                  name={section as keyof ResumeFormValues}
-                  control={control}
-                  render={({ field }) => (
-                    <EntryForm
-                      type={(section.endsWith("s")
-                        ? section.slice(0, -1)
-                        : section
-                      ).replace(/^./, (c) => c.toUpperCase())}
-                      entries={field.value as Entry[]}
-                      onChange={field.onChange}
-                    />
+            {["experience", "education", "projects"].map((section) => {
+              const typeMap: Record<string, string> = {
+                experience: "Experience",
+                education: "Education",
+                projects: "Project",
+              };
+              return (
+                <div key={section} className="space-y-4">
+                  <h3 className="text-lg font-medium">
+                    {section.charAt(0).toUpperCase() + section.slice(1)}
+                  </h3>
+                  <Controller
+                    name={section as keyof ResumeFormValues}
+                    control={control}
+                    render={({ field }) => (
+                      <EntryForm
+                        type={typeMap[section]}
+                        entries={field.value as Entry[]}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                  {errors[section as keyof ResumeFormValues] && (
+                    <p className="text-sm text-red-500">
+                      {errors[section as keyof ResumeFormValues]?.toString()}
+                    </p>
                   )}
-                />
-                {errors[section as keyof ResumeFormValues] && (
-                  <p className="text-sm text-red-500">
-                    {errors[section as keyof ResumeFormValues]?.toString()}
-                  </p>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </TabsContent>
 
