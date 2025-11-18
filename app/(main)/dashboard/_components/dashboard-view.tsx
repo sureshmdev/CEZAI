@@ -94,6 +94,38 @@ const DashboardView = ({ insights }: DashboardViewProps) => {
     { addSuffix: true }
   );
 
+  const CustomTick: React.FC<{
+    x?: number;
+    y?: number;
+    payload?: { value: string };
+  }> = ({ x = 0, y = 0, payload }) => {
+    if (!payload?.value) return null;
+
+    const words = payload.value.split(" ");
+
+    // Group into lines of 2 words each
+    const lines: string[] = [];
+    for (let i = 0; i < words.length; i += 2) {
+      lines.push(words.slice(i, i + 2).join(" "));
+    }
+
+    return (
+      <text
+        x={x}
+        y={y}
+        dy={30}
+        textAnchor="middle"
+        className="fill-muted-foreground text-sm font-medium"
+      >
+        {lines.map((line, i) => (
+          <tspan key={i} x={x} dy={i === 0 ? 0 : 18}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    );
+  };
+
   function toTitleCase(str: string) {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -188,9 +220,14 @@ const DashboardView = ({ insights }: DashboardViewProps) => {
         <CardContent>
           <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={salaryData}>
+              <BarChart data={salaryData} margin={{ top: 0, bottom: 30 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis
+                  dataKey="name"
+                  interval={0}
+                  tick={<CustomTick />}
+                  tickMargin={10}
+                />
                 <YAxis />
                 <Tooltip
                   content={({ active, payload, label }) => {
@@ -209,9 +246,9 @@ const DashboardView = ({ insights }: DashboardViewProps) => {
                     return null;
                   }}
                 />
-                <Bar dataKey="min" fill="#94a3b8" name="Min Salary (K)" />
-                <Bar dataKey="median" fill="#64748b" name="Median Salary (K)" />
-                <Bar dataKey="max" fill="#475569" name="Max Salary (K)" />
+                <Bar dataKey="min" fill="#0d2f99" name="Min Salary (K)" />
+                <Bar dataKey="median" fill="#2b7fff" name="Median Salary (K)" />
+                <Bar dataKey="max" fill="#8ec5ff" name="Max Salary (K)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
