@@ -35,9 +35,6 @@ model User {
   coverLetter   CoverLetter[]
   userInsight   UserInsight?
 
-  interviews    Interview[]
-  feedbacks     Feedback[]
-
   mockInterviews MockInterview[]
 
 }
@@ -104,71 +101,6 @@ model CoverLetter {
   @@index([userId])
 }
 
-// Combined Industry Trends and Salary Insights
-// model IndustryInsight {
-//   id            String    @id @default(cuid())
-//   industry      String    @unique  // The industry this data belongs to (e.g., "tech-software-development")
-  
-//   // Users in this industry
-//   users         User[]
-  
-//   // Salary data
-//   salaryRanges  Json[]    // Array of { role: string, min: float, max: float, median: float, location: string? }
-  
-//   // Industry trends
-//   growthRate    Float     // Industry growth rate
-//   demandLevel   String    // "High", "Medium", "Low"
-//   topSkills     String[]  // Most in-demand skills
-  
-//   // Market conditions
-//   marketOutlook String    // "Positive", "Neutral", "Negative"
-//   keyTrends     String[]  // Array of current industry trends
-  
-//   // Learning suggestions
-//   recommendedSkills String[]  // Skills recommended for the industry
-  
-//   lastUpdated   DateTime  @default(now())
-//   nextUpdate    DateTime  // Scheduled update time
-
-//   @@index([industry])
-// }
-
-model Interview {
-  id         String     @id @default(cuid())
-  userId     String
-  user       User       @relation(fields: [userId], references: [id])
-
-  role       String
-  level      String
-  type       String
-  techstack  String[]   // e.g. ["React", "Node.js"]
-  questions  String[]   // e.g. ["What is closure?"]
-  finalized  Boolean    @default(false)
-
-  coverImage String?
-
-  feedbacks  Feedback[]
-  createdAt  DateTime   @default(now())
-
-  @@index([userId])
-}
-
-model Feedback {
-  id                  String    @id @default(cuid())
-  interviewId         String
-  interview           Interview @relation(fields: [interviewId], references: [id])
-  userId String
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  totalScore          Float
-  categoryScores      Json      // Array<{ name: string; score: number; comment: string }>
-  strengths           String[]
-  areasForImprovement String[]
-  finalAssessment     String
-  transcript          Json      // Array<{ role: string; content: string }>
-
-  createdAt           DateTime  @default(now())
-}
-
 model MockInterview {
   id             String   @id @default(cuid())
   userId         String
@@ -176,6 +108,8 @@ model MockInterview {
 
   mockId         String   @unique
   mockResponse   Json
+  answers        Json?
+  feedback       String?  @db.Text
   position       String
   description    String
   experience     Int

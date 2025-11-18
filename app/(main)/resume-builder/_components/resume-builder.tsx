@@ -598,10 +598,10 @@ export default function ResumeBuilder({
                   control={control}
                   render={({ field }) => (
                     <EntryForm
-                      type={
-                        section.slice(0, -1).charAt(0).toUpperCase() +
-                        section.slice(1, -1)
-                      }
+                      type={(section.endsWith("s")
+                        ? section.slice(0, -1)
+                        : section
+                      ).replace(/^./, (c) => c.toUpperCase())}
                       entries={field.value as Entry[]}
                       onChange={field.onChange}
                     />

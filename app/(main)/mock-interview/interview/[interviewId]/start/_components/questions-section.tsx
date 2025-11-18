@@ -1,8 +1,7 @@
 "use client";
 
-import { Spinner } from "@/components/ui/spinner";
 import { Lightbulb } from "lucide-react";
-import React, { useState } from "react";
+import React from "react";
 
 interface QuestionsSectionProps {
   mockInterviewQuestion: string[];
@@ -14,7 +13,6 @@ interface QuestionsSectionProps {
 function QuestionsSection({
   mockInterviewQuestion,
   activeQuestionIndex,
-  feedbackResult,
   setActiveQuestionIndex,
 }: QuestionsSectionProps) {
   return (
@@ -55,20 +53,6 @@ function QuestionsSection({
             answers. NOTE: We never record your video. Webcam access can be
             disabled at any time if you want.
           </h2>
-        </div>
-        {/*Feedback Result*/}
-        <div>
-          {feedbackResult === "loading" && <Spinner />}
-          {feedbackResult !== "loading" && (
-            <p
-              dangerouslySetInnerHTML={{
-                __html:
-                  feedbackResult.length === 0
-                    ? "Feedback will apear here upon submission"
-                    : feedbackResult,
-              }}
-            ></p>
-          )}
         </div>
       </div>
     )

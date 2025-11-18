@@ -35,11 +35,6 @@ const navMainItems = [
     isActive: true,
   },
   {
-    title: "Roadmap",
-    url: "/career-roadmap",
-    icon: Map,
-  },
-  {
     title: "Smart Assessment",
     url: "/smart-assessment",
     icon: CopyCheck,
