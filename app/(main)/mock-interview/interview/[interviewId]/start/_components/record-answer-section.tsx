@@ -34,12 +34,14 @@ function RecordAnswerSection({
   // ]);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // const [isRecording, setIsRecording] = useState(false);
 
-  // Speech recognition refs
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef("");
 
-  // Initialize Web Speech API
+  /* ---------------------------
+   INITIALIZE SPEECH RECOGNITION (ONLY ONCE)
+---------------------------- */
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -59,81 +61,68 @@ function RecordAnswerSection({
     recognition.lang = "en-US";
 
     recognition.onresult = (event: any) => {
-      let interimTranscript = "";
-      let finalTranscript = finalTranscriptRef.current;
+      let interim = "";
+      let finalTxt = finalTranscriptRef.current;
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
+
         if (event.results[i].isFinal) {
-          finalTranscript += transcript + " ";
+          finalTxt += transcript + " ";
         } else {
-          interimTranscript += transcript;
+          interim += transcript;
         }
       }
 
-      finalTranscriptRef.current = finalTranscript;
-      const fullTranscript = finalTranscript + interimTranscript;
-      setCurrentTranscript(fullTranscript);
+      finalTranscriptRef.current = finalTxt;
+      const full = finalTxt + interim;
 
-      // Update answers array in real-time
+      setCurrentTranscript(full);
+
+      // Live update
       setAnswers((prev) => {
-        const newAnswers = [...prev];
-        newAnswers[activeQuestionIndex] = fullTranscript;
-        return newAnswers;
+        const copy = [...prev];
+        copy[activeQuestionIndex] = full;
+        return copy;
       });
     };
 
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error:", event.error);
-      if (event.error === "no-speech") {
-        // Auto-restart on no-speech
-        try {
-          recognition.start();
-        } catch (e) {
-          // Already started
-        }
-      } else if (event.error === "not-allowed") {
-        toast.error(
-          "Microphone access denied. Please enable microphone permissions."
-        );
+      if (event.error === "not-allowed") {
+        toast.error("Microphone access denied.");
       }
     };
 
+    // Auto restart to keep mic alive
     recognition.onend = () => {
-      // Auto-restart if still recording
       if (isRecording) {
         try {
           recognition.start();
-        } catch (e) {
-          console.log("Recognition restart failed:", e);
-        }
+        } catch {}
       }
     };
 
     recognitionRef.current = recognition;
 
     return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
+      recognition.stop();
     };
-  }, [activeQuestionIndex, isRecording]);
+  }, []);
 
-  // Reset transcript when question changes
+  /* ---------------------------
+   UPDATE TRANSCRIPT ONLY WHEN NOT RECORDING
+---------------------------- */
   useEffect(() => {
-    finalTranscriptRef.current = answers[activeQuestionIndex] || "";
-    setCurrentTranscript(answers[activeQuestionIndex] || "");
-  }, [activeQuestionIndex, answers]);
+    if (!isRecording) {
+      finalTranscriptRef.current = answers[activeQuestionIndex] || "";
+      setCurrentTranscript(answers[activeQuestionIndex] || "");
+    }
+  }, [activeQuestionIndex, answers, isRecording]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (recognitionRef.current && isRecording) {
-        recognitionRef.current.stop();
-      }
-    };
-  }, [isRecording]);
-
+  /* ---------------------------
+   MIC TOGGLE
+---------------------------- */
   const handleMicToggle = () => {
     if (!recognitionRef.current) {
       toast.error("Speech recognition not initialized");
@@ -143,12 +132,14 @@ function RecordAnswerSection({
     if (isRecording) {
       recognitionRef.current.stop();
       setIsRecording(false);
-      toast.success("Recording stopped");
     } else {
+      // Reset everything when starting
+      finalTranscriptRef.current = "";
+      setCurrentTranscript("");
+
       try {
         recognitionRef.current.start();
         setIsRecording(true);
-        toast.success("Recording started");
       } catch (e) {
         console.error("Failed to start recognition:", e);
         toast.error("Failed to start recording");
@@ -156,21 +147,36 @@ function RecordAnswerSection({
     }
   };
 
+  /* ---------------------------
+   NEXT QUESTION HANDLER
+---------------------------- */
   const handleNextQuestion = () => {
-    // Save current answer
-    const updatedAnswers = [...answers];
-    updatedAnswers[activeQuestionIndex] = currentTranscript;
-    setAnswers(updatedAnswers);
+    const updated = [...answers];
+    updated[activeQuestionIndex] = currentTranscript;
+    setAnswers(updated);
 
     if (activeQuestionIndex < 4) {
-      // Move to next question
       setActiveQuestionIndex(activeQuestionIndex + 1);
       toast.success(`Moving to question ${activeQuestionIndex + 2}`);
+
+      // Auto-continue recording smoothly
+      finalTranscriptRef.current = "";
+      setCurrentTranscript("");
     } else {
-      // Submit all answers
-      handleSubmit(updatedAnswers);
+      handleSubmit(updated);
     }
   };
+
+  /* ---------------------------
+   CLEANUP
+---------------------------- */
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
 
   const handleSubmit = async (finalAnswers: string[]) => {
     // Stop recording if still active
