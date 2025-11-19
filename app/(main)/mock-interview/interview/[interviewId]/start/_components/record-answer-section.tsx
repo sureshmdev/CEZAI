@@ -25,6 +25,13 @@ function RecordAnswerSection({
   const [webCamEnabled, setWebCamEnabled] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [answers, setAnswers] = useState<string[]>(Array(5).fill(""));
+  // const [answers, setAnswers] = useState<string[]>([
+  //   "question",
+  //   "question",
+  //   "question",
+  //   "question",
+  //   "question",
+  // ]);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
