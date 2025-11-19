@@ -442,7 +442,7 @@ BE BRUTALLY HONEST. This person needs to know the truth to improve.
 
     // Save feedback to database
     await db.mockInterview.update({
-      where: { id: mockInterview.id },
+      where: { mockId: mockId },
       data: {
         feedback: cleanedText,
         updatedAt: new Date(),
@@ -454,7 +454,7 @@ BE BRUTALLY HONEST. This person needs to know the truth to improve.
     // Revalidate the pages
     revalidatePath("/mock-interview");
     revalidatePath(`/mock-interview/interview/${mockId}`);
-
+    console.log("Feedback is:", cleanedText);
     return cleanedText;
   } catch (error) {
     console.error("Error in getFeedback:", error);

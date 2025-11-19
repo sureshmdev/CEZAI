@@ -60,6 +60,7 @@ function StartInterview({ params }: StartInterviewProps) {
         <RecordAnswerSection
           mockInterviewQuestion={questions}
           setFeedback={setFeedbackResult}
+          mockId={interviewId}
           setActiveQuestionIndex={setActiveQuestionIndex}
           activeQuestionIndex={activeQuestionIndex}
         />

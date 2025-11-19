@@ -1,10 +1,8 @@
-"use client";
-import { Button } from "@/components/ui/button";
 import { useEffect, useState, useCallback, useRef } from "react";
 
 // More human-sounding filler words (phonetically tuned)
 function humanizeSpeechText(text: string): string {
-  const fillers = ["hmmm...", "uhh", "aah...", "weelll", "y'know"];
+  const fillers = [" ", " ", " ", " ", " "];
   const words = text.split(" ");
   const result: string[] = [];
 
@@ -27,12 +25,35 @@ function humanizeSpeechText(text: string): string {
   return result.join(" ").replace(/\?/g, ", hmmm?");
 }
 
-// Custom React hook for speech synthesis
-function useHumanTTS() {
+interface TTSOptions {
+  enableBackgroundNoise?: boolean;
+  rate?: number;
+  pitch?: number;
+  volume?: number;
+  backgroundVolume?: number;
+}
+
+export function useInterviewerTTS(options: TTSOptions = {}) {
+  const {
+    enableBackgroundNoise = true,
+    rate = 1.3,
+    pitch = 1.6,
+    volume = 0.4,
+    backgroundVolume = 0.25,
+  } = options;
+
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
+  const bgAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  const ambienceOptions = [
+    "/audio/office.mp3",
+    "/audio/people.mp3",
+    "/audio/cafe.mp3",
+  ];
+
+  // Load voices
   useEffect(() => {
     if (!synth) return;
     const loadVoices = () => setVoices(synth.getVoices());
@@ -40,6 +61,32 @@ function useHumanTTS() {
     loadVoices();
     return () => synth.removeEventListener("voiceschanged", loadVoices);
   }, [synth]);
+
+  // Manage background sound
+  useEffect(() => {
+    if (!enableBackgroundNoise) {
+      bgAudioRef.current?.pause();
+      return;
+    }
+
+    // Randomly pick a background sound
+    const randomAmbience =
+      ambienceOptions[Math.floor(Math.random() * ambienceOptions.length)];
+
+    if (!bgAudioRef.current) {
+      bgAudioRef.current = new Audio(randomAmbience);
+      bgAudioRef.current.loop = true;
+    } else {
+      bgAudioRef.current.src = randomAmbience;
+    }
+
+    bgAudioRef.current.volume = backgroundVolume;
+    bgAudioRef.current.play().catch(() => {});
+
+    return () => {
+      bgAudioRef.current?.pause();
+    };
+  }, [enableBackgroundNoise, backgroundVolume]);
 
   const getBestVoice = useCallback(() => {
     if (!voices.length) return null;
@@ -51,7 +98,7 @@ function useHumanTTS() {
     );
   }, [voices]);
 
-  const speak = useCallback(
+  const readQuestion = useCallback(
     async (text: string) => {
       if (!synth) return;
       synth.cancel();
@@ -68,12 +115,17 @@ function useHumanTTS() {
 
       setIsSpeaking(true);
 
+      // Adjust background volume when speaking
+      if (bgAudioRef.current && enableBackgroundNoise) {
+        bgAudioRef.current.volume = backgroundVolume;
+      }
+
       for (const sentence of sentences) {
         const utter = new SpeechSynthesisUtterance(sentence);
         utter.voice = getBestVoice() || null;
-        utter.rate = 0.9;
-        utter.pitch = 0.9;
-        utter.volume = 0.4;
+        utter.rate = rate;
+        utter.pitch = pitch;
+        utter.volume = volume;
 
         await new Promise<void>((resolve) => {
           utter.onend = resolve;
@@ -86,97 +138,42 @@ function useHumanTTS() {
       }
 
       setIsSpeaking(false);
+
+      // Lower background volume when done speaking
+      if (bgAudioRef.current && enableBackgroundNoise) {
+        bgAudioRef.current.volume = backgroundVolume * 0.6;
+      }
     },
-    [getBestVoice, synth]
+    [
+      getBestVoice,
+      synth,
+      rate,
+      pitch,
+      volume,
+      enableBackgroundNoise,
+      backgroundVolume,
+    ]
   );
 
-  const stop = useCallback(() => {
+  const stopSpeaking = useCallback(() => {
     if (!synth) return;
     synth.cancel();
     setIsSpeaking(false);
+    if (bgAudioRef.current && enableBackgroundNoise) {
+      bgAudioRef.current.volume = backgroundVolume * 0.6;
+    }
+  }, [synth, enableBackgroundNoise, backgroundVolume]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (synth) synth.cancel();
+      if (bgAudioRef.current) {
+        bgAudioRef.current.pause();
+        bgAudioRef.current = null;
+      }
+    };
   }, [synth]);
 
-  return { speak, stop, isSpeaking };
-}
-
-export default function InterviewerTTS() {
-  const { speak, stop, isSpeaking } = useHumanTTS();
-  const [text, setText] = useState(
-    "Given your extensive frontend experience, describe a complex React component you architected, focusing on your decisions regarding state management and component composition"
-  );
-  const [bgEnabled, setBgEnabled] = useState(true);
-  const bgAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  const ambienceOptions = [
-    "/audio/office.mp3",
-    "/audio/people.mp3",
-    "/audio/cafe.mp3",
-  ];
-
-  // Manage background sound
-  useEffect(() => {
-    if (!bgEnabled) {
-      bgAudioRef.current?.pause();
-      return;
-    }
-
-    // Randomly pick a background sound
-    const randomAmbience =
-      ambienceOptions[Math.floor(Math.random() * ambienceOptions.length)];
-
-    if (!bgAudioRef.current) {
-      bgAudioRef.current = new Audio(randomAmbience);
-      bgAudioRef.current.loop = true;
-    } else {
-      bgAudioRef.current.src = randomAmbience;
-    }
-
-    bgAudioRef.current.volume = 0.25;
-    bgAudioRef.current.play().catch(() => {});
-  }, [bgEnabled, isSpeaking]);
-
-  const handleSpeak = () => {
-    if (bgEnabled && bgAudioRef.current) bgAudioRef.current.volume = 0.25;
-    speak(text);
-  };
-
-  const handleStop = () => {
-    stop();
-    if (bgAudioRef.current) bgAudioRef.current.volume = 0.15;
-  };
-
-  return (
-    <div className="max-w-xl mx-auto mt-12 p-6 border rounded-2xl shadow-sm space-y-4">
-      <h2 className="text-xl font-semibold">🎙️ Realistic Interviewer Voice</h2>
-
-      <textarea
-        className="w-full border rounded-lg p-3 text-sm"
-        rows={4}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-
-      <div className="flex gap-3 items-center">
-        <Button onClick={handleSpeak} disabled={isSpeaking}>
-          {isSpeaking ? "Speaking..." : "Speak as Interviewer"}
-        </Button>
-        <Button onClick={handleStop} variant="outline">
-          Stop
-        </Button>
-        <label className="ml-auto flex items-center gap-2 text-sm text-gray-600">
-          <input
-            type="checkbox"
-            checked={bgEnabled}
-            onChange={() => setBgEnabled(!bgEnabled)}
-          />
-          Background noise
-        </label>
-      </div>
-
-      <p className="text-sm text-gray-500">
-        Each play randomly picks between office, people, or cafe background.
-        Filler words are phonetically tuned for more natural pronunciation.
-      </p>
-    </div>
-  );
+  return { readQuestion, stopSpeaking, isSpeaking };
 }
