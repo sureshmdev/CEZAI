@@ -54,11 +54,11 @@ const navMainItems = [
     url: "/cover-letter",
     icon: SquarePen,
   },
-  {
-    title: "Roadmap",
-    url: "/comming-soon",
-    icon: Map,
-  },
+  // {
+  //   title: "Roadmap",
+  //   url: "/comming-soon",
+  //   icon: Map,
+  // },
   {
     title: "Profile",
     url: "/onboarding",
