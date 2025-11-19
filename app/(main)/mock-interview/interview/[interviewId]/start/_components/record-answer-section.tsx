@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Webcam from "react-webcam";
 import { getFeedback } from "@/actions/mock-interview";
 import { toast } from "sonner";
+import { useInterviewerTTS } from "@/app/(main)/mock-interview/_components/interviewerTTS";
 
 interface RecordAnsSectionProps {
   mockInterviewQuestion: string[];
@@ -25,6 +26,12 @@ function RecordAnswerSection({
   const [webCamEnabled, setWebCamEnabled] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [answers, setAnswers] = useState<string[]>(Array(5).fill(""));
+  const { readQuestion, stopSpeaking, isSpeaking } = useInterviewerTTS({
+    enableBackgroundNoise: true,
+    rate: 0.9,
+    pitch: 0.9,
+    volume: 0.9,
+  });
   // const [answers, setAnswers] = useState<string[]>([
   //   "question",
   //   "question",
@@ -34,10 +41,18 @@ function RecordAnswerSection({
   // ]);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  //const [interviewerGender, setInterveiwerGender] = useState("male");
   // const [isRecording, setIsRecording] = useState(false);
 
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef("");
+
+  useEffect(() => {
+    stopSpeaking();
+    const questionText = mockInterviewQuestion[activeQuestionIndex];
+    console.log("Current question text is: ", questionText);
+    readQuestion(questionText);
+  }, [activeQuestionIndex]);
 
   /* ---------------------------
    INITIALIZE SPEECH RECOGNITION (ONLY ONCE)
